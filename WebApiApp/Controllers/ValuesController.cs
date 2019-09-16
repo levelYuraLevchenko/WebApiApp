@@ -4,36 +4,64 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using WebApiApp.Models;
+using System.Data.Entity;
 
 namespace WebApiApp.Controllers
 {
     public class ValuesController : ApiController
     {
-        // GET api/values
-        public IEnumerable<string> Get()
+        BookContext db = new BookContext();
+
+        public IEnumerable<Book> GetBook()
         {
-            return new string[] { "value1", "value2" };
+            return db.Books;
         }
 
-        // GET api/values/5
-        public string Get(int id)
+        public Book GetBook(int id)
         {
-            return "value";
+            Book book = db.Books.Find(id);
+            return book;
         }
 
-        // POST api/values
-        public void Post([FromBody]string value)
+        [HttpPost]
+        public void CreateBook([FromBody]Book book)
         {
+            db.Books.Add(book);
+            db.SaveChanges();
         }
 
-        // PUT api/values/5
-        public void Put(int id, [FromBody]string value)
+        [HttpPut]
+        public void EditBook(int id, [FromBody]Book book)
         {
+            if(id == book.Id)
+            {
+                db.Entry(book).State = EntityState.Modified;
+
+                db.SaveChanges();
+            }
         }
 
-        // DELETE api/values/5
+        [HttpDelete]
         public void Delete(int id)
         {
+            Book book = db.Books.Find(id);
+
+            if(book != null)
+            {
+                db.Books.Remove(book);
+
+                db.SaveChanges();
+            }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if(disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
         }
     }
 }
